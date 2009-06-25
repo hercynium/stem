@@ -173,7 +173,7 @@ EOT
 		$telnet_path = $build->prompt(
 			  "Enter the path to telnet "
 			. "(or another compatible telnet client)",
-            '/foo/usr/bin/telnet'
+            '/usr/bin/telnet'
 		) ;
 	}
 	$build->config_data( telnet_path => $telnet_path ) ;
@@ -197,7 +197,7 @@ EOT
 		$xterm_path = $build->prompt(
 			  "Enter the path to xterm "
 			. "(or another compatible terminal emulator)",
-            '/foo/usr/bin/xterm'
+            '/usr/bin/xterm'
 		) ;
 	}
 	$build->config_data( xterm_path => $xterm_path ) ;

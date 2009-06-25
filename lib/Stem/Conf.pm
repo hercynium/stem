@@ -230,7 +230,7 @@ sub configure {
 
 		no strict 'refs' ;
 
-		unless ( %{"::${class}"} ) {
+		unless ( %{"${class}::"} ) {
 
 			my $module = $class ;
 			$module =~ s{::}{/}g ;

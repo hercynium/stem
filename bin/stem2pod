@@ -1,410 +1,532 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 #
-#	stem2pod
+#   stem2pod
 #
-#	takes filename (a stem module) arguments and it updates their
-#	pod from their attribute descriptions. it also will insert pod
-#	templates for methods, subs and standard pod sections.
+# scans a file containing the code for a stem cell
+# and updates it with pod generated from the cell's
+# attribute variables.
 #
-#	if a file is changed, it is written out over itself. unchanged
-#	files are not touched.
+# also generates pod for detected methods, subs, and
+# any missing standard stuff (author, license, etc.)
+#
 
 use strict;
-
-use Carp qw( carp cluck ) ;
+use warnings;
 use Data::Dumper;
+use File::Slurp;
+use Carp;
 
-#use Test::More tests => 1 ;
 
-#$SIG{__WARN__} = sub { cluck } ;
 
-my $changed ;
-my $package ;
+# These globals are initalized in the BEGIN block at the bottom of this file
+# Please treat as constants.
+our ( %PRE_POD, %POST_POD );
 
-my %is_attr_part = map { $_ => 1 } qw(
-	name
-	type
-	help
-	default
-	required
-	class
-	class_args
-) ;
+# Another global/"constant"
+our %IS_ATTR_PART = map { $_ => 1 } qw(
+  name
+  type
+  help
+  default
+  required
+  class
+  class_args
+);
 
-foreach my $file_name ( @ARGV ) {
 
-	process_source_file( $file_name ) ;
+
+for my $file_name (@ARGV) {
+    stem2pod($file_name);
 }
+exit;
 
-exit ;
 
-sub process_source_file {
 
-	my ( $file_name ) = @_ ;
 
-	my $code_text = read_file( $file_name ) ;
+sub stem2pod {
+    my ($file_name) = @_;
 
-	my $new_code_text = process_code_text( $file_name, $code_text ) ;
+    my $file_text = read_file($file_name);
 
-#print $new_code_text ;
+    my $attr_spec = find_attr_spec( $file_text, $file_name );
 
-	if ( $new_code_text eq $code_text ) {
+    my @meth_names = find_method_names( $file_text );
 
-		print "$file_name SAME\n" ;
-		return ;
-	}
+    # extract_pod _literally_ extracts it - 
+    # removing any pod found from the text.
+    my $new_text = $file_text;
+    my $pod_sections = extract_pod( \$new_text, \@meth_names );
 
-	print "$file_name CHANGED\n" ;
+    my ($class_name) = ($file_text =~ /^package\s+([\w:]+)/m);
 
-	write_file( "$file_name.new, $new_code_text ) ;
+    my $attr_pod = generate_attr_pod( $attr_spec, $file_name, $class_name );
+    
+    generate_boilerplate( $file_text, $class_name );
 
-#	write_file( "$file_name.bak, $code_text ) ;
-#	write_file( $file_name, $new_code_text ) ;
+    my $new_pod = generate_pod( $attr_pod, \@meth_names, $pod_sections );
 
-}
+    my $new_source = build_source( $new_pod, $new_text );
 
-sub process_code_text {
+    if ( $file_text eq $new_source ) {
+        warn "No changes to make to $file_name\n";
+        return;
+    }
 
-	my ( $file_name, $text ) = @_ ;
-
-	$text =~ s{
-		  (
-		     ^package			# start at package line
-		     .+?			# the middle stuff
-		     ^sub			# start of constructor
-		  )
-		}
-		{
-		  update_attr_spec( $1, $file_name )
-		}mgsex ;
-
-	$text =~ s{
-			(.{0,20}?)
-			^sub
-			\s+
-			(\w+)
-			\s*
-		}
-		{ update_sub_pod( $1, $2 ) }mgsex ;
-
-	unless( $text =~ /^=cut\s*^\s*1\s*;\s*/m ) {
-	
-		$text =~ s{^\s*1\s*;\s*$}{ update_trailing_pod() }mex ;
-	}
-
-	return $text ;
+    write_file( "$file_name.new", $new_source );
 }
 
 
-sub update_attr_spec {
 
-	my( $attr_text, $file_name ) = @_ ;
 
-#print "U1 <$attr_text>\n" ;
 
-	( $package ) = $attr_text =~ /^package\s+([\w:]+)/ ;
 
-	$attr_text =~ s/\n*^\#{5,}\n.+?^\#{5,}\n*//ms ;
-# and print "DELETED OLD POD\n" ;
 
-#print "U3 <$attr_text>\n" ;
 
-	$attr_text =~ s{ (^my\s+\$attr_spec.+?^]\s*;\s*) }
-		       { attr_spec_to_pod( $1, $file_name ) }gmsex ;
 
-#dump_attr( 'ATTR', $attr_text ) ;
-#print "ATTR [", substr( $attr_text, -40 ), "]\n" ;
-#print "U2 [$attr_text]\n" ;
 
-	return $attr_text ;
+
+
+
+
+# Finds and returns a list of the names of 
+# methods/subroutines found in the file
+sub find_method_names {
+    my ( $file_text ) = @_;
+
+    my @meth_names = $file_text =~ /^sub\s+([^\W_]\w*)/gm;
+
+    return @meth_names;
 }
 
-sub attr_spec_to_pod {
 
-	my ( $attr_text, $file_name ) = @_ ;
 
-	my $pod ;
 
-#print "ATTR [$attr_text]\n" ;
-#print "ATTR END1 [", substr( $attr_text, -30), "]\n" ;
 
-	$attr_text =~ s/\s*\z// ;
+# Find and _remove_ any POD in the file. 
+# Returns a HoH-like data-structure that you should probably inspect
+# with DD to see what it looks like...
+sub extract_pod {
+    my ( $text_ref, $method_names ) = @_;
+    my %pod_sections;
+    my @pod_names;
+    while ( ${$text_ref} =~ 
+        s{
+	        ^	         # begin of line
+	        (	         # grab pod head line as $1
+	            =head\w* # begin pod section
+		        \s+
+		        (.+?)$   # grab section title as $2
+            )
+            (
+		        .+?      # grab pod body as $3
+	        )
+	        (?:          # match until after =cut, before =head or at EOF
+                ^=cut
+              | (?=^=head)
+              | \z
+            )
+        }{}mxs 
+    ) {
+        my $head  = $1;
+        my $title = $2;
+        my $body  = $3;
 
-	my( $attr_list_text ) =
-		$attr_text =~ /^my\s+\$attr_spec.+?=(.+?^\])/ms ;
-	$attr_list_text or die
-	      "can't parse out attr list from file $file_name class $package" ;
+#        # strip out leading and trailing blank lines
+#        $body =~ s/\A[\n]\s*[\n]|[\n]\s*[\n]\z//msg;
 
-#print "ATTR2 [$attr_list_text]\n" ;
-	my $attr_list = eval $attr_list_text ;
+        # Does the section title contain the name of a method?
+        my ($method_name) = grep { $title =~ /$_/i and $_ } @$method_names;
+        if ( $method_name ) {
+        
+            warn "Duplicate pod section for method "
+               . "$method_name named [$title].\n"
+              if exists $pod_sections{methods}{$method_name};
+              
+            $pod_sections{methods}{$method_name}{head} = $head;  
+            $pod_sections{methods}{$method_name}{body} = $body;
+            
+            next;
+        }
+        
+        warn "Found pod section with duplicate name [$title]\n"
+          if exists $pod_sections{other}{ lc $title };
+          
+        $pod_sections{other}{ lc $title }{head} = $head;
+        $pod_sections{other}{ lc $title }{body} = $body;
+    }
+#    print Dumper \%pod_sections; exit;
+    return \%pod_sections;
+}
 
-	$pod .= <<POD ;
-###########
-# This POD section is autogenerated. Any edits to it will be lost.
+
+
+
+
+
+# Generate all the POD text in one big chunk...
+# Fill in most sections with boilerplate, but will
+# merge in sections that were already present ( found by extract_pod() )
+sub generate_pod {
+    my ( $attr_pod, $meth_names, $pod_sections ) = @_;
+
+    my $new_pod;
+
+    $new_pod .= generate_pod_sections( $pod_sections, \%PRE_POD );
+
+    # attr_pod is always regenerated...
+    # TODO: perhaps it's better to call generate_attr_pod() here?
+    if ($attr_pod) {
+        $new_pod .= "=head1 ATTRIBUTES\n\n";
+        $new_pod .= strip_blank_lines( $attr_pod ) . "\n\n";
+    }
+
+    $new_pod .= "=head1 METHODS\n\n";
+    foreach my $meth_name ( @$meth_names ) {
+
+        $new_pod .= "=head2 $meth_name\n\n";
+        if ( my $meth_pod = $pod_sections->{methods}{$meth_name} ) {
+            $new_pod .= strip_blank_lines( $meth_pod->{body} ) . "\n\n";
+            next;
+        }
+
+        if ( $meth_name eq 'new' ) {
+            $new_pod .= strip_blank_lines( <<END_POD ) . "\n\n";
+
+This is a class method that constructs the object. It uses
+the standard Stem API of key/value attributes. These are described
+in the \$attr_spec in the module, and it's POD is auto-generated.
+
+END_POD
+            next;
+        }
+
+        if ( $meth_name eq 'msg_in' ) {
+            $new_pod .= strip_blank_lines( <<END_POD ) . "\n\n";
+
+This method is the 'wildcard' Stem message handler and it is passed a single 
+argument which is a L<Stem::Msg> object. This method is called if no 
+specific message handler method is found in this cell. This is missing
+specific documentation to be filled in.
+
+END_POD
+            next;
+        }
+
+        if ( $meth_name =~ /^(.+)_in$/ ) {
+            my $msg_type = $1; 
+            $new_pod .= strip_blank_lines( <<END_POD ) . "\n\n";
+
+This method is a Stem message handler for messages of type $msg_type.
+It is passed a single argument which is a L<Stem::Msg> object and 
+its return value is ignored. This is missing specific documentation 
+to be filled in.
+
+END_POD
+            next;
+        }
+
+        if ( $meth_name =~ /^(.+)_cmd$/ ) {
+            my $cmd_type = $1;
+            $new_pod .= strip_blank_lines( <<END_POD ) . "\n\n";
+
+This method is a Stem message handler for command messages of type $cmd_type.
+It is passed a single argument which is a L<Stem::Msg> object. 
+Any return value will be sent back as a 'response' type message to the sender.
+This is missing specific documentation to be filled in.
+
+END_POD
+            next;
+        }
+
+        # All other methods just get this...
+        $new_pod .= "This method is missing documentation\n\n";
+    }
+
+    $new_pod .= generate_pod_sections( $pod_sections, \%POST_POD );
+    
+    $new_pod .= "=cut\n\n";
+
+    return $new_pod;
+}
+
+
+sub generate_pod_sections {
+    my ($existing_pod, $bp_pod) = @_;
+    
+    my $new_pod;
+
+    foreach my $section ( @{ $bp_pod->{names} } ) {
+
+        (my $printable_section = $section) =~ tr/_/ /;
+        $new_pod .= "=head1 $printable_section\n\n";
+
+        my $found_sec = $existing_pod->{other}{ lc $section };
+        
+        my $next_part = $found_sec ? 
+            $found_sec->{body} : $bp_pod->{boilerplate}{$section} ;
+
+        $new_pod .= strip_blank_lines( $next_part ) . "\n\n";
+    }
+
+    return $new_pod;
+}
+
+
+sub generate_boilerplate {
+    my ($file_text, $class_name) = @_;
+
+    $PRE_POD{boilerplate}{NAME} = <<END_POD;
+$class_name
+END_POD
+
+    if ($file_text =~ /\$attr_spec/) {
+        $POST_POD{boilerplate}{SEE_ALSO} = <<END_POD;
+L<Stem::Class>
+END_POD
+    }
+
+return;
+}
+
+# strip out leading and trailing blank lines
+sub strip_blank_lines {
+    my ($text) = @_;
+    $text =~ s/\A[\n]?\s*[\n]|[\n]\s*[\n]?\z//msg;
+    return $text;
+}
+
+
+# tries to locate the $attr_spec array ref in the text
+# and returns it as a real data structure (eval magick)
+sub find_attr_spec {
+    my ( $file_text, $file_name ) = @_;
+
+    # The regex below is naive but will be fine for now. I would
+    # prefer to use Text::Balanced or Regexp::Common though...
+    my $attr_spec;
+    if ( $file_text =~ /\$attr_spec\s*=\s*(\[[^\]]*\])\s*;/ ) {
+        $attr_spec = eval $1
+          or croak "Error parsing \$attr_spec from $file_name:\n$@\n";
+    }
+
+    return $attr_spec;
+}
+
+
+
+
+# blow away __END__ and everything after (if present) 
+# and replace with generated POD
+sub build_source {
+    my ( $new_pod, $file_text ) = @_;
+
+    ( my $new_text = $file_text ) =~ s/^__END__[\n].*//msg;
+
+    return $new_text . "__END__\n\n" . $new_pod;
+}
+
+
+
+
+
+
+
+
+# Stolen from uri's original script, but really, 
+# really needs to be cleaned up...
+# TODO: clean up this sub, somehow...
+sub generate_attr_pod {
+    my ( $attr_list, $file_name, $package ) = @_;
+
+    my $pod .= <<POD ;
 
 =head2 Class Attributes for $package
 
-=over 4
-
-POD
-
-#print "POD [$pod]\n" ;
-
-
-	foreach my $attr_ref ( @{$attr_list} ) {
-
-		my $name = $attr_ref->{name} ;
-
-		if ( $name ) {
-
-			$pod .= <<POD ;
-
-=item * Attribute - B<$name>
+This pod is generated from the \$attr_spec in the module.
+That data is also used by L<Stem::Class> to parse the arguments 
+passed to the class constructor new().
 
 =over 4
 
 POD
-		}
-		else {
 
-			warn <<WARN ;
+    #print "POD [$pod]\n" ;
+
+    foreach my $attr_ref ( @{$attr_list} ) {
+
+        my $name = $attr_ref->{name};
+
+        unless ($name) {
+
+            warn <<WARN ;
 Missing attribute name in Class $package in file $file_name
 WARN
+            next;
+        }
 
-			next ;
-		}
+        $pod .= <<POD ;
 
-		my $help = $attr_ref->{help} ;
+=item * B<$name>
 
-		if ( defined( $help ) ) {
+=over 4
 
-			$pod .= <<POD ;
-
-=item Description:
-
-$help
 POD
-		}
-		else {
 
-			warn <<WARN ;
+        my $help = $attr_ref->{help};
+
+        unless ( defined($help) ) {
+            warn <<WARN ;
 Missing help in attribute $name in Class $package in file $file_name
 WARN
-		}
+            next;
+        }
 
-		if ( my $attr_class = $attr_ref->{class} ) {
+        $pod .= <<POD ;
 
-			my $class_args = '<' .
-				join( ', ', @{$attr_ref->{class_args} || []} )
-				 . '>' ;
-
-			$pod .= <<POD ;
-
-=item Class Attribute:
-
-'$name' is an object of class $attr_class and constructed with:
-$class_args
+=item - $help
 POD
-		}
+# suppress line break in POD output after description
+        chomp $pod; 
 
+        if ( my $attr_class = $attr_ref->{class} ) {
 
-		exists( $attr_ref->{type} ) and $pod .= <<POD ;
+            my $class_args =
+              '<' . join( ', ', @{ $attr_ref->{class_args} || [] } ) . '>';
 
-=item The type of '$name' is:
-
-$attr_ref->{type}
+            $pod .= <<POD ;
+=item - Class Attribute: '$name' is an object of class $attr_class and constructed with: $class_args
 POD
+        }
 
-		if ( exists( $attr_ref->{default} ) ) {
+        exists( $attr_ref->{type} ) and $pod .= <<POD ;
 
-			my $default = $attr_ref->{default} ;
-
-			if( ref($default) eq "ARRAY" ) {
-
-				$default =
-					'(' . join( ', ', @{$default} ) . ')' ;
-			}
-
-			$pod .= <<POD
-
-=item B<Default> value:
-
-$default
-POD
-		}
-
-		exists( $attr_ref->{required} ) and $pod .= <<POD ;
-
-=item It is B<required>.
+=item - The type of '$name' is: $attr_ref->{type}
 POD
 
-		foreach my $attr ( sort keys %{ $attr_ref } ) {
-			next if $is_attr_part{ $attr } ;
-			$pod .= "Unknown attribute $attr\n" ;
-		}
+        if ( exists( $attr_ref->{default} ) ) {
 
-		$pod .= <<POD ;
+            my $default = $attr_ref->{default};
 
-=back
+            if ( ref($default) eq "ARRAY" ) {
 
+                $default = '(' . join( ', ', @{$default} ) . ')';
+            }
+
+            $pod .= <<POD
+
+=item - B<Default> value: $default
 POD
-	}
+        }
 
-	$pod .= <<POD ;
+        exists( $attr_ref->{required} ) and $pod .= <<POD ;
+
+=item - It is B<required>.
+POD
+
+        foreach my $attr ( sort keys %{$attr_ref} ) {
+            next if $IS_ATTR_PART{$attr};
+            $pod .= "Unknown attribute $attr\n";
+        }
+
+        $pod .= <<POD ;
+     
+=back 
+  
+POD
+    }
+
+    $pod .= <<POD ;
 
 =back
 
 =cut
 
-# End of autogenerated POD
-###########
-
 POD
 
-#print "[$pod]" ;
-#print "POD2 [", substr($pod, 0, 40), "]\n" ;
+    #print "[$pod]" ;
 
-	return "$attr_text\n\n$pod" ;
+    #print "POD2 [", substr($pod, 0, 40), "]\n" ;
+
+    return $pod;
 }
 
-sub update_sub_pod {
 
-	my( $cut_text, $name ) = @_ ;
 
-#print "SUB [$cut_text][$name]\n" ;
 
-	if ( $cut_text =~ /^=cut\s*$/m || $name =~ /^_/ ) {
 
-#print "SUB1 [${cut_text}sub $name ]\n"  if $name eq 'new' ;
-#dump_new( 'POD FOUND', $cut_text ) ;
 
-		return "${cut_text}sub $name " ;
-	}
 
-#print "NO SUB POD for $name\n" ;
 
-	my $desc = get_sub_pod( $name ) ;
 
-#dump_new( 'CUT', $cut_text ) ;
-#dump_new( 'DESC', $desc ) ;
-#print "CUT2 [$cut_text]\nDESC [$desc]\n" if $name eq 'new' ;
 
-	my $pod = <<POD ;
-$cut_text$desc
-=cut
 
-sub $name 
-POD
+# Globals declared at the top of this script are initalized here
+# Keeping at the bottom of this file to (try to) reduce clutter.
+BEGIN {
 
-	chomp $pod ;
+    # Pod sections that go before attribute and method sections
+    my @PRE_POD_NAMES = qw( NAME SYNOPSIS DESCRIPTION );
 
-#print "SUB2 [$pod]\n" if $name eq 'new' ;
+    # sections that go after
+    my @POST_POD_NAMES = qw( BUGS TODO SEE_ALSO AUTHOR LICENSE COPYRIGHT );
 
-	return $pod ;
-}
 
-sub get_sub_pod {
+    # Boilerplate for each "pre" section
+    my %PRE_POD_BP = (
 
-	my ( $name ) = @_ ;
+        NAME => <<'END_POD',
+Name of module
+END_POD
 
-	return <<POD if $name eq 'new' ;
-=head3 Constructor - B<new>
+        SYNOPSIS => <<'END_POD',
+Code/config example
+END_POD
 
-The B<new> method creates an object of the class B<$package>. 
+        DESCRIPTION => <<'END_POD',
+What is this module good for?
+END_POD
 
-POD
+    );
 
-	return <<POD if $name eq 'msg_in' ;
-=head3 Message Handler - B<msg_in>
 
-The B<msg_in> method is effectively a default method for message
-delivery. If any message to this cell can't be delivered to another
-method, then it will be delivered to the B<msg_in> method. If a
-command message is delivered and a value is returned by B<msg_in>, a
-response message is sent back to the originating cell with that value.
-POD
+    # Boilerplate for each "post" section
+    my %POST_POD_BP = (
 
-	return <<POD if $name =~ /(\w+)_in$/ ;
-=head3 Message Handler - $name
+        BUGS => <<'END_POD',
+None
+END_POD
 
-B<$1> type messages are delivered to this method. Its return value is
-ignored by the message delivery system.
-POD
+        TODO => <<'END_POD',
+END_POD
 
-	return <<POD if $name =~ /(\w+)_cmd$/ ;
-=head3 Command Message Handler - $name
+        SEE_ALSO => <<'END_POD',
+END_POD
 
-B<$1> command messages are delivered to this method. If any value is
-returned, the message delivery system will create a response type
-message and dispatch it back to the sending cell.
-POD
+        AUTHOR => <<'END_POD',
+Uri Guttman uri@cpan.org
+END_POD
 
-	return <<POD ;
-=head3 Method - $name
-POD
+        LICENSE => <<'END_POD',
+Same as Perl
+END_POD
 
-}
+        COPYRIGHT => <<'END_POD',
+(C) Uri Guttman, 2009
+END_POD
 
-sub update_trailing_pod {
+    );
 
-	my( $tail_text ) = @_ ;
 
-#	return $tail_text if $tail_text =~ /=cut/ ;
+    # globals used in other parts of the program
+    %PRE_POD = (
+        names       => \@PRE_POD_NAMES,
+        boilerplate => \%PRE_POD_BP,
+    );
 
-#print "1 [$tail_text]\n" ;
-
-	return <<POD ;
-
-=head1 Bugs
-
-=head1 Todo
-
-=head1 See Also
-
-=head1 Author
-
-Uri Guttman, E<lt>uri\@stemsystems.comE<gt>
-
-=cut
-
-1 ;
-POD
+    %POST_POD = (
+        names       => \@POST_POD_NAMES,
+        boilerplate => \%POST_POD_BP,
+    );
 
 }
 
-sub read_file {
-
-	my( $file_name ) = shift ;
-
-	local( *FH ) ;
-	open( FH, $file_name ) || carp "can't open $file_name $!" ;
-
-	return <FH> if wantarray ;
-
-	my $buf ;
-
-	sysread( FH, $buf, -s FH ) ;
-	return $buf ;
-}
-
-sub write_file {
-
-	my( $file_name ) = shift ;
-
-	local( *FH ) ;
-
-	open( FH, ">$file_name" ) || carp "can't create $file_name $!" ;
-
-	print FH @_ ;
-}
-
-sub dump_attr {
-
-	my( $key, $text ) = @_ ;
-
-	$text =~ /(;\s+#{3,})/s or return ;
-
-	print "$key [$1]\n" ;
-}
-
-__END__

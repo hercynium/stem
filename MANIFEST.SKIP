@@ -1,2 +1,21 @@
-^\.git$ 
-^\.git/ 
+# Version control files and dirs.
+\bRCS\b
+\bCVS\b
+,v$
+\B\.svn\b
+^.git
+^.gitignore
+
+# EUMM/MB generated files and dirs.
+^MANIFEST\.bak
+^_build
+^Makefile$
+^blib/
+^MakeMaker-\d
+
+# Temp, old and emacs backup files.
+~$
+\.old$
+^#.*#$
+^\.#
+

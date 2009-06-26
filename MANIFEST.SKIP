@@ -9,6 +9,7 @@
 # EUMM/MB generated files and dirs.
 ^MANIFEST\.bak
 ^_build
+^Build$
 ^Makefile$
 ^blib/
 ^MakeMaker-\d

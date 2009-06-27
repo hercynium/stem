@@ -5,6 +5,13 @@ $offset = 175 ;
 $base_off = 0 ;
 $xskip = ( $^O eq 'solaris' ) ? 600 : 500 ;
 
+use File::Basename qw( basename );
+$ENV{PATH} .= ':' . basename( $0 ) . ':.';
+for my $prog qw( run_stem xterm telnet ) {
+    die "Can't find $prog in PATH\n" if
+        system( "which $prog >/dev/null 2>&1" ) != 0;
+}
+
 my @children ;
 
 my $tail_dir = 'tail' ;
@@ -45,12 +52,11 @@ EOT
 	sleep 2 ;
 }
 
-while( <STDIN> ) {
+1 while wait() != -1;
 
-	next unless /^q/i ;
+exit;
 
-	cleanup() ;
-}
+
 
 sub cleanup {
 

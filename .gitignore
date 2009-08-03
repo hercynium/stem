@@ -11,6 +11,7 @@ _build/
 Build
 Makefile
 lib/
+blib/
 
 # Temp, old and emacs backup files.
 *~

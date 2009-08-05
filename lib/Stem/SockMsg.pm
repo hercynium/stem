@@ -159,6 +159,8 @@ INFO
 	}
 	elsif ( $self->{'connect_now'} ) {
 
+#print "NOW\n" ;
+
 		$self->connect() ;
 	}
 
@@ -235,6 +237,8 @@ INFO
 
 	TraceStatus "\n$info" ;
 
+#print "\n$info" ;
+
 	if ( my $log_name = $self->{ 'log_name' } ) {
 
 #print "MSG LOG\n" ;
@@ -264,6 +268,7 @@ sub triggered_cell {
 	my( $self ) = @_ ;
 
 #print "SockMsg triggered\n" ;
+	return if $self->{'connected'} ;
 	return if $self->{'server'} ;
 
 #	return "SockMsg: can't connect a server socket" if $self->{'server'} ;

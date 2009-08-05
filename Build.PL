@@ -32,6 +32,8 @@ my $build = BuildStem->new(
 
 $build->is_unixish() || die "Stem currently only installs properly on *nix-like platforms.\n";
 
+### this will come in handy for some refactoring...
+## $build->config( 'install_base' )
 
 print <<'EOT';
 
@@ -53,30 +55,31 @@ If you want to force a new build, run Build clean.
 
 EOT
 
-
-
 print <<'EOT';
 
-Stem configuration files are used to create and initialize Stem Cells
-(objects). Stem needs to know the list of directories to search to
-find its configurations files.
+Stem comes with a utility called 'run_stem' which takes care of things
+like initalizing Stem with a configuration file and controlling it's 
+operation via various parameters you can pass in as environment 
+variables or command line arguments. 
 
-Note that the default has a single absolute path. You can test Stem
-configurations easily setting this path when executing run_stem. You
-can override or modify the path time with either a shell environment
+Stem configuration files are used to create and initialize Stem Cells
+(objects). run_stem can search a path list for config files, so you 
+can set that list of directories here.
+
+Note that you can easily override this path with either a shell environment
 variable or on the command line of run_stem. See the documentation on
 run_stem for how so do this.
 
-The first directory in the list is where the standard Stem
+The last directory in the list is where the standard and demo Stem
 configuration files will be installed.
 
-Enter a list of absolute directory paths separated by ':'.
+Please enter a list of directory paths separated by ':'.
 
 EOT
 
 my $conf_path = $build->prompt(
 	"What directories do you want Stem to search for configuration files?\n",
-	'.:./conf:~/.stem/conf:/usr/local/stem/conf'
+	'.:~/.stem/conf:/usr/local/stem/conf'
 );
 $build->config_data(conf_path => $conf_path);
 

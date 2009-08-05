@@ -29,8 +29,9 @@ sub process_script_files {
 		my $result = $self->copy_if_modified($file, $dest_dir, 'flatten') or next;
 		$self->fix_shebang_line($result) if $self->is_unixish();
 		$self->make_executable($result);
+        my $demo_run_dir = File::Spec->catdir($self->base_dir(), 'demo');
 		if ( $result =~ /(?:run_stem$)|(?:_demo$)/ ) {
-			my $result2 = $self->copy_if_modified($result, $self->base_dir(), 'flatten') or next;
+			my $result2 = $self->copy_if_modified($result, $demo_run_dir, 'flatten') or next;
 			$self->add_to_cleanup($result2);
 		}
 	}

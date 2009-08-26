@@ -159,7 +159,6 @@ sessions/backend.pl
 sessions/client.pl
 sessions/mid_event.pl
 sessions/mid_event_async.pl
-srs_notes.txt
 t/cell/flow.t
 t/config/test_stem_bug.pl
 t/event/event.t

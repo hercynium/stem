@@ -9,6 +9,13 @@ my @children ;
 
 print "INETD: $ENV{PATH}\n" ;
 
+use File::Basename qw( basename );
+$ENV{PATH} .= ':' . basename( $0 ) . ':.';
+for my $prog qw( run_stem xterm telnet ) {
+    die "Can't find $prog in PATH\n" if
+        system( "which $prog >/dev/null 2>&1" ) != 0;
+}
+
 $SIG{ 'INT' } = \&cleanup ;
 
 if ( $s ) {
@@ -42,13 +49,11 @@ print "CMD $cmd\n" ;
 	sleep 4 unless $cmd =~ /localhost/ ;
 }
 
+1 while wait() != -1;
 
-while( <STDIN> ) {
+exit;
 
-	next unless /^q/i ;
 
-	cleanup() ;
-}
 
 sub cleanup {
 

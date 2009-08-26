@@ -20,3 +20,6 @@
 ^#.*#$
 ^\.#
 \.*.swp$
+
+# other stuff we dont want in the dist tarball
+^notes/

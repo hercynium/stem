@@ -230,7 +230,11 @@ sub configure {
 
 		no strict 'refs' ;
 
-		unless ( %{"::${class}"} ) {
+        my %loaded_packages = map { $_ => 1 } keys %{*{"main\::"}};
+
+		unless ( $loaded_packages{"$class\::"} ) {
+
+#print "attempting to load $class\n";
 
 			my $module = $class ;
 			$module =~ s{::}{/}g ;

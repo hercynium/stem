@@ -10,7 +10,6 @@ MANIFEST.bak
 _build/
 Build
 Makefile
-lib/
 blib/
 
 # Temp, old and emacs backup files.

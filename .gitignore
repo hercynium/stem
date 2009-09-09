@@ -10,13 +10,28 @@ MANIFEST.bak
 _build/
 Build
 Makefile
-lib/
 blib/
 
 # Temp, old and emacs backup files.
 *~
 *.old
+old*
 \#*#
 .#*
 .*.swp
+lib-pod
+*.ok
+modules
+
+event_test
+*.gz
+dlug
+flow
+intel
+pod
+scaffidi
+slides
+stem2pod
+test
+
 

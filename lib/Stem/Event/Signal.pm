@@ -32,8 +32,8 @@ sub _build {
 
 	$SIG{ $signal } = $cached_handlers{$signal} ||=
 		sub {
-			mark_not_empty() ;
-#print "HIT $signal\n";
+print "HIT $signal\n";
+			Stem::Event::Queue::mark_not_empty() ;
 			push @signal_queue, $signal
 		} ;
 

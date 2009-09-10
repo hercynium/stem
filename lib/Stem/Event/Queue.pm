@@ -48,14 +48,13 @@ use warnings ;
 use Socket;
 use IO::Handle ;
 
-use base 'Exporter' ;
-our @EXPORT = qw( &mark_not_empty ) ;
+my( $self, $queue_read, $queue_write, $queue_read_event, $queue_has_event ) ;
 
-my( $queue_read, $queue_write, $queue_read_event ) ;
+sub _init_event_queue {
 
-my $self ;
+	return if $self ;
 
-sub _init_queue {
+	$self = bless {} ;
 
 	socketpair( $queue_read, $queue_write,
 		 AF_UNIX, SOCK_STREAM, PF_UNSPEC ) || die <<DIE ;
@@ -64,7 +63,6 @@ DIE
 
 #print fileno( $queue_read ), " FILENO\n" ;
 
-	$self = bless {} ;
 
 	$queue_read->blocking( 0 ) ;
 	$queue_read_event = Stem::Event::Read->new(
@@ -78,27 +76,25 @@ DIE
 
 }
 
-my $queue_is_marked ;
-
-sub mark_not_empty {
+sub queue_has_event {
 
 	my( $always_mark ) = @_ ;
 
 # don't mark the queue if it is already marked and we aren't forced
 # the signal queue always marks the queue
 
-	return if $queue_is_marked && !$always_mark ;
+	return if $queue_has_event && !$always_mark ;
 
 	syswrite( $queue_write, 'x' ) ;
 
-	$queue_is_marked = 1 ;
+	$queue_has_event = 1 ;
 }
 
 sub readable {
 
 	sysread( $queue_read, my $buf, 10 ) ;
 
-	$queue_is_marked = 0 ;
+	$queue_has_event = 0 ;
 
 #	Stem::Event::Plain::process_queue();
 	Stem::Event::Signal::process_signal_queue();

@@ -71,7 +71,7 @@ sub init_loop {
 
 	$loop_class->_init_loop() ;
 
-Stem::Event::Queue::_init_queue() if defined &Stem::Event::Queue::_init_queue ;
+#Stem::Event::Queue::_init_queue() if defined &Stem::Event::Queue::_init_queue ;
 
 }
 
@@ -316,9 +316,7 @@ sub _get_loop_class {
 
 package Stem::Event::Plain ;
 
-BEGIN {
-	@Stem::Event::Plain::ISA = qw( Stem::Event ) ;
-}
+our @ISA = qw( Stem::Event ) ;
 
 =head2 Stem::Event::Plain::new
 
@@ -365,7 +363,7 @@ sub new {
 	my $self = Stem::Class::parse_args( $attr_spec_plain, @_ ) ;
 	return $self unless ref $self ;
 
-	my $err = $self->_core_event_build( 'plain' ) ;
+	my $err = $self->_build_core_event( 'plain' ) ;
 	return $err if $err ;
 
 	return $self ;
@@ -375,7 +373,7 @@ sub new {
 
 package Stem::Event::Signal ;
 
-BEGIN { our @ISA = qw( Stem::Event ) } ;
+our @ISA = qw( Stem::Event ) ;
 
 =head2 Stem::Event::Signal::new
 
@@ -462,7 +460,7 @@ sub new {
 
 package Stem::Event::Timer ;
 
-BEGIN { our @ISA = qw( Stem::Event ) } ;
+our @ISA = qw( Stem::Event ) ;
 
 =head2 Stem::Event::Timer::new
 
@@ -652,7 +650,7 @@ sub timer_triggered {
 
 package Stem::Event::IO ;
 
-BEGIN { our @ISA = qw( Stem::Event ) } ;
+our @ISA = qw( Stem::Event ) ;
 
 sub init_io_timeout {
 
@@ -726,7 +724,7 @@ sub timed_out {
 
 package Stem::Event::Read ;
 
-BEGIN { our @ISA = qw( Stem::Event::IO ) }
+our @ISA = qw( Stem::Event::IO ) ;
 
 =head2 Stem::Event::Read::new
 
@@ -825,7 +823,7 @@ sub new {
 
 package Stem::Event::Write ;
 
-BEGIN { our @ISA = qw( Stem::Event::IO ) } ;
+our @ISA = qw( Stem::Event::IO ) ;
 
 =head2 Stem::Event::Write::new
 

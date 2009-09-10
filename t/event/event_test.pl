@@ -11,8 +11,7 @@ BEGIN {
 
 use strict ;
 
-#use Test::More tests => 29 ;
-use Test::More tests => 24 ;
+use Test::More tests => 27 ;
 
 use Symbol ;
 
@@ -27,9 +26,9 @@ exit ;
 
 sub test_events {
 
-#	test_null_events() ;
-#	test_plain_events () ;
-#	test_signal_events () ;
+	test_null_events() ;
+	test_plain_events () ;
+	test_signal_events () ;
 	test_hard_timer_events () ;
 	test_soft_timer_events () ;
 	test_io_events () ;

@@ -32,7 +32,8 @@ sub _build {
 
 	$SIG{ $signal } = $cached_handlers{$signal} ||=
 		sub {
-			mark_not_empty() ;
+	Stem::Event::Queue::queue_has_event() ;
+			
 #print "HIT $signal\n";
 			push @signal_queue, $signal
 		} ;
@@ -42,6 +43,12 @@ sub _build {
 	$signal2event{$signal} = $self ;
 
 #print "$signal = $SIG{ $signal }\n" ;
+
+# make sure the event queue is set up so we can handle signals in the
+# event loop
+
+	Stem::Event::Queue::_init_event_queue() ;
+
 	return ;
 }
 

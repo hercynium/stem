@@ -50,7 +50,7 @@ sub test_plain_events {
 		'object' => $self
 	) ;
 
-	ok( ref $event, 'plain event created' ) ;
+	ok( ref $event, 'plain - event created' ) ;
 
 	Stem::Event::start_loop() ;
 
@@ -63,7 +63,7 @@ sub triggered {
 
 	my( $self ) = @_ ;
 
-	ok( 1, 'plain event triggered' ) ;
+	ok( 1, 'plain - event triggered' ) ;
 }
 
 sub test_signal_events {
@@ -80,7 +80,7 @@ sub test_signal_events {
 			'signal'	=> 'INT',
 		) ;
 
-		ok( ref $event, 'signal event created' ) ;
+		ok( ref $event, 'signal - event created' ) ;
 
 		$self->{'sig_event'} = $event ;
 
@@ -100,7 +100,7 @@ sub sig_int_handler {
 
 	my( $self ) = @_ ;
 
-	ok( 1, 'signal event triggered' ) ;
+	ok( 1, 'signal - event triggered' ) ;
 
 	$self->{'sig_event'}->cancel() ;
 	Stem::Event::stop_loop() ;
@@ -125,7 +125,7 @@ sub test_hard_timer_events {
 		'hard'		=> 1,
 	) ;
 
-	ok( ref $event, 'hard timer event created' ) ;
+	ok( ref $event, 'hard timer - event created' ) ;
 	print "$event\n" unless ref $event ;
 
 	$self->{'hard_timer_event'} = $event ;
@@ -141,7 +141,7 @@ sub hard_timeout {
 
 	my( $self ) = @_ ;
 
-	ok( 1, 'hard timer event triggered' ) ;
+	ok( 1, 'hard timer - event triggered' ) ;
 
 	if ( --$self->{'hard_timer_count'} > 0 ) {
 
@@ -149,7 +149,7 @@ sub hard_timeout {
 		my $delta = $time - $self->{'hard_timer_start_time'} ;
 		$self->{'hard_timer_start_time'} = $time ;
 
-		ok( $delta >= INTERVAL, 'hard delta' ) ;
+		ok( $delta >= INTERVAL, 'hard timer - delta' ) ;
 
 		hard_sleep( SLEEP ) ;
 
@@ -162,8 +162,8 @@ sub hard_timeout {
 
 #print "O $self->{'hard_timer_start_time'} T $time D $delta I ", INTERVAL, "\n" ;
 
-	ok( $delta >= INTERVAL, 'hard delta 2' ) ;
-	ok( $delta <= INTERVAL + SLEEP, 'hard delta sleep' ) ;
+	ok( $delta >= INTERVAL, 'hard timer - delta 2' ) ;
+	ok( $delta <= INTERVAL + SLEEP, 'hard timer - delta sleep' ) ;
 
 	$self->{'hard_timer_event'}->cancel() ;
 
@@ -184,7 +184,7 @@ sub test_soft_timer_events {
 		'repeat'	=> 1,
 	) ;
 
-	ok( ref $event, 'soft timer event created' ) ;
+	ok( ref $event, 'soft timer - event created' ) ;
 #	print "$event\n" unless ref $event ;
 
 	$self->{'soft_timer_event'} = $event ;
@@ -202,7 +202,7 @@ sub soft_timeout {
 
 	my( $self ) = @_ ;
 
-	ok( 1, 'soft timer event triggered' ) ;
+	ok( 1, 'soft timer - event triggered' ) ;
 
 	if ( --$self->{'soft_timer_count'} > 0 ) {
 
@@ -211,7 +211,7 @@ sub soft_timeout {
 
 #print "T $time D $delta I ", INTERVAL, "\n" ;
 
-		ok( $delta >= INTERVAL, 'soft delta' ) ;
+		ok( $delta >= INTERVAL, 'soft timer - delta' ) ;
 
 		hard_sleep( SLEEP ) ;
 
@@ -226,8 +226,8 @@ sub soft_timeout {
 
 #print "TIME2 $time OTIME $self->{'soft_timer_start_time'} DEL $delta INTERVAL ", INTERVAL, "\n" ;
 
-#	ok( $delta >= INTERVAL, 'soft delta 2' ) ;
-	ok( $delta >= INTERVAL + SLEEP, 'soft delta 3' ) ;
+#	ok( $delta >= INTERVAL, 'soft timer - delta 2' ) ;
+	ok( $delta >= INTERVAL + SLEEP, 'soft timer - delta 3' ) ;
 
 	$self->{'soft_timer_event'}->cancel() ;
 
@@ -258,7 +258,7 @@ sub test_io_events {
 				'timeout'	=>	3,
 	) ;
 
-	ok( ref $read_event, 'read event created' ) ;
+	ok( ref $read_event, 'read - event created' ) ;
 	$self->{'read_event'} = $read_event ;
 
 	my $write_event = Stem::Event::Write->new(
@@ -266,19 +266,19 @@ sub test_io_events {
 				'fh'		=>	$write_fh,
 	) ;
 
-	ok( ref $write_event, 'write event created' ) ;
+	ok( ref $write_event, 'write - event created' ) ;
 	$self->{'write_event'} = $write_event ;
 
 	Stem::Event::start_loop() ;
 
-	ok( 1, 'io - event loop exit' ) ;
+	ok( 1, 'io event - loop exit' ) ;
 }
 
 sub read_timeout {
 
 	my( $self ) = @_ ;
 
-	ok( 1, 'read event timed out' ) ;
+	ok( 1, 'read - event timed out' ) ;
 
 	$self->{'write_event'}->start() ;
 }
@@ -288,7 +288,7 @@ sub writeable {
 
 	my( $self ) = @_ ;
 
-	ok( 1, 'write event triggered' ) ;
+	ok( 1, 'write - event triggered' ) ;
 
 	syswrite( $self->{'write_fh'}, $self->{'message'} ) ;
 
@@ -299,13 +299,13 @@ sub readable {
 
 	my( $self ) = @_ ;
 
-	ok(1, 'read event triggered' ) ;
+	ok(1, 'read - event triggered' ) ;
 
 	my( $read_buf ) ;
 
 	my $bytes_read = sysread( $self->{'read_fh'}, $read_buf, 1000 ) ;
 
-	ok( $bytes_read, 'read byte count' ) ;
+	ok( $bytes_read, 'read - byte count' ) ;
 
 	is( $read_buf, $self->{'message'}, 'read event compare' ) ;
 

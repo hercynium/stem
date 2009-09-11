@@ -47,7 +47,6 @@ sub process_conf_files {
 	my $conf_dir = File::Spec->catdir($self->blib, 'conf');
 	File::Path::mkpath( $conf_dir );
 
-
 	foreach my $file (keys %$files) {
 		my $result = $self->copy_if_modified($file, $conf_dir, 'flatten') or next;
 		$self->fix_shebang_line($result) if $self->is_unixish();

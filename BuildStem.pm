@@ -23,6 +23,7 @@ sub process_script_files {
 	my $demo_dir   = File::Spec->catdir($self->blib, 'demo');
 	File::Path::mkpath( $script_dir );
 	File::Path::mkpath( $demo_dir );
+    $self->add_to_cleanup($demo_dir);
 
 	foreach my $file (keys %$files) {
 		my $dest_dir = $file =~ /_demo$/ ? $demo_dir : $script_dir ;

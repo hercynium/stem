@@ -7,6 +7,10 @@ $xskip = ( $^O eq 'solaris' ) ? 600 : 500 ;
 
 use File::Basename qw( basename );
 $ENV{PATH} .= ':' . basename( $0 ) . ':.';
+<<<<<<< HEAD:bin/chat2_demo
+=======
+
+>>>>>>> origin/master:bin/chat2_demo
 for my $prog qw( run_stem xterm telnet ) {
     die "Can't find $prog in PATH\n" if
         system( "which $prog >/dev/null 2>&1" ) != 0;

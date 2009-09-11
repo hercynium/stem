@@ -41,6 +41,7 @@
 
 
 package Stem::Event::Queue ;
+our @ISA = qw( Stem::Event ) ;
 
 use strict ;
 use warnings ;
@@ -49,7 +50,7 @@ use Socket;
 use IO::Handle ;
 
 use base 'Exporter' ;
-our @EXPORT = qw( &mark_not_empty ) ;
+our @EXPORT = qw( mark_not_empty ) ;
 
 my( $queue_read, $queue_write, $queue_read_event ) ;
 

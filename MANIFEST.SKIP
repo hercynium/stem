@@ -14,9 +14,16 @@
 ^blib/
 ^MakeMaker-\d
 
+# demo files so we don't need to install
+^demo/
+
 # Temp, old and emacs backup files.
 ~$
 \.old$
 ^#.*#$
 ^\.#
 \.*.swp$
+
+# other stuff we dont want in the dist tarball
+^notes/
+

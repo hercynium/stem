@@ -10,7 +10,6 @@ MANIFEST.bak
 _build/
 Build
 Makefile
-lib/
 blib/
 
 # Temp, old and emacs backup files.
@@ -19,4 +18,23 @@ blib/
 \#*#
 .#*
 .*.swp
+
+# archive files
+*.gz
+*.bz2
+
+# stuff from uri's working dir that he doesn't want in the repo
+old*
+*.ok
+lib-pod
+modules
+event_test
+dlug
+flow
+intel
+pod
+scaffidi
+slides
+stem2pod
+test
 

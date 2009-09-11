@@ -35,11 +35,10 @@ API for the standard classes:
 =cut
 
 package Stem::Event::Perl ;
+our @ISA = qw( Stem::Event ) ;
 
 use strict ;
 use Stem::Event::Signal ;
-
-@Stem::Event::Perl::ISA = qw( Stem::Event ) ;
 
 BEGIN {
 

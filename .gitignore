@@ -1,0 +1,37 @@
+# Version control files and dirs.
+RCS
+CVS
+*,v$
+.svn/
+.git/
+
+# EUMM/MB generated files and dirs.
+MANIFEST.bak
+_build/
+Build
+Makefile
+blib/
+
+# Temp, old and emacs backup files.
+*~
+*.old
+old*
+\#*#
+.#*
+.*.swp
+lib-pod
+*.ok
+modules
+
+event_test
+*.gz
+dlug
+flow
+intel
+pod
+scaffidi
+slides
+stem2pod
+test
+
+

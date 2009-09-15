@@ -1,0 +1,28 @@
+# Version control files and dirs.
+\bRCS\b
+\bCVS\b
+,v$
+\B\.svn\b
+^.git
+^.gitignore
+
+# EUMM/MB generated files and dirs.
+^MANIFEST\.bak
+^_build
+^Build$
+^Makefile$
+^blib/
+^MakeMaker-\d
+
+# demo files so we don't need to install
+^demo/
+
+# Temp, old and emacs backup files.
+~$
+\.old$
+^#.*#$
+^\.#
+\.*.swp$
+
+# other stuff we dont want in the dist tarball
+^notes/

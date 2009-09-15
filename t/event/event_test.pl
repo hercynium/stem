@@ -63,7 +63,12 @@ sub triggered {
 
 	my( $self ) = @_ ;
 
+<<<<<<< HEAD:t/event/event_test.pl
 	ok( 1, 'plain - event triggered' ) ;
+=======
+	ok( 1, 'plain event triggered' ) ;
+	Stem::Event::stop_loop() ;
+>>>>>>> master:t/event/event_test.pl
 }
 
 sub test_signal_events {
@@ -75,6 +80,22 @@ sub test_signal_events {
 			return ;
 		}
 
+		my $event2 = Stem::Event::Timer->new(
+			'object'	=> $self,
+			'method'	=> 'send_int_signal',
+			'delay'		=> 3,
+		) ;
+
+		ok( ref $event2, 'signal delay timer created' ) ;
+
+		Stem::Event::start_loop() ;
+
+		ok( 1, 'signal - event loop exit' ) ;
+	}
+}
+
+sub send_int_signal {
+
 		my $event = Stem::Event::Signal->new(
 			'object'	=> $self,
 			'signal'	=> 'INT',
@@ -84,14 +105,10 @@ sub test_signal_events {
 
 		$self->{'sig_event'} = $event ;
 
-		kill 'INT', $$ ;
 
-#print "kill INT\n" ;
+print "kill INT\n" ;
 
-		Stem::Event::start_loop() ;
-
-		ok( 1, 'signal - event loop exit' ) ;
-	}
+	kill 'INT', $$ ;
 }
 
 # callback method for signal
@@ -141,7 +158,13 @@ sub hard_timeout {
 
 	my( $self ) = @_ ;
 
+<<<<<<< HEAD:t/event/event_test.pl
 	ok( 1, 'hard timer - event triggered' ) ;
+=======
+send_int_signal() ;
+
+	ok( 1, 'hard timer event triggered' ) ;
+>>>>>>> master:t/event/event_test.pl
 
 	if ( --$self->{'hard_timer_count'} > 0 ) {
 

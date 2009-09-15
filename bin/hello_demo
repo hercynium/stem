@@ -4,13 +4,15 @@ use strict ;
 use warnings ;
 our $s ;
 
-if ( -d 'conf' && -e 'bin/run_stem' ) {
+print "HELLO DEMO\n" ;
 
-	$ENV{PERL5LIB} = 'lib' ;
-	$ENV{PATH} =  "bin:$ENV{PATH}" ;
+use File::Basename qw( basename );
+$ENV{PATH} .= ':' . basename( $0 ) . ':.';
+for my $prog qw( run_stem xterm ) {
+    die "Can't find $prog in PATH\n" if
+        system( "which $prog >/dev/null 2>&1" ) != 0;
 }
 
-print "HELLO DEMO\n" ;
 
 $SIG{ 'INT' } = \&cleanup ;
 
@@ -30,12 +32,11 @@ s/:/: / for @cmd ;
 
 fork_exec( @cmd ) ;
 
-while( <STDIN> ) {
+1 while wait() != -1;
 
-	next unless /^q/i ;
+exit;
 
-	cleanup() ;
-}
+
 
 sub cleanup {
 

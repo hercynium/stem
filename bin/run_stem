@@ -1,4 +1,7 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
+
+eval 'exec /usr/bin/perl -w -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
 #  File: bin/run_stem
 
 #  This file is part of Stem.
@@ -26,6 +29,10 @@
 #  	79 Everett St.			info@stemsystems.com
 #  	Arlington, MA 02474
 #  	USA
+
+
+eval { use lib 'blib/lib' } if -d 'blib/lib';
+eval { use lib '../blib/lib' } if -d '../blib/lib';
 
 $Data::Dumper::Indent = 1 ;
 $Data::Dumper::Purity = 1 ;

@@ -64,14 +64,19 @@ my %loop_to_class = (
 
 my $loop_class = _get_loop_class() ;
 
-init_loop() ;
+INIT{ init_loop() ; }
 
 
 sub init_loop {
 
+Stem::Event::Queue::_init_queue() if defined &Stem::Event::Queue::_init_queue ;
+
 	$loop_class->_init_loop() ;
 
+<<<<<<< HEAD:lib/Stem/Event.pm
 #Stem::Event::Queue::_init_queue() if defined &Stem::Event::Queue::_init_queue ;
+=======
+>>>>>>> master:lib/Stem/Event.pm
 
 }
 
@@ -295,18 +300,24 @@ sub _get_loop_class {
 	$loop_type = 'perl' unless $loop_to_class{ $loop_type } ;
 	my $loop_class = "Stem::Event::$loop_to_class{ $loop_type }" ;
 
+print "LOOP $loop_class\n" ;
+
 	unless ( eval "require $loop_class" ) {
 		die "can't load $loop_class: $@" if $@ && $@ !~ /locate/ ;
+
+print "not found\n" ;
 
 		$loop_type = 'perl' ;
 		eval { require Stem::Event::Perl } ;
 		die "can't load event loop Stem::Event::Perl $@" if $@ ;
 	}
 
+
 	# save the event loop that we loaded.
 
 	#print "using event loop [$loop_type]\n" ;
 	$Stem::Vars::Env{ 'event_loop' } = $loop_type ;
+
 
 	return $loop_class ;
 }
@@ -315,7 +326,10 @@ sub _get_loop_class {
 ############################################################################
 
 package Stem::Event::Plain ;
+<<<<<<< HEAD:lib/Stem/Event.pm
 
+=======
+>>>>>>> master:lib/Stem/Event.pm
 our @ISA = qw( Stem::Event ) ;
 
 =head2 Stem::Event::Plain::new
@@ -372,7 +386,10 @@ sub new {
 ############################################################################
 
 package Stem::Event::Signal ;
+<<<<<<< HEAD:lib/Stem/Event.pm
 
+=======
+>>>>>>> master:lib/Stem/Event.pm
 our @ISA = qw( Stem::Event ) ;
 
 =head2 Stem::Event::Signal::new
@@ -459,7 +476,10 @@ sub new {
 ############################################################################
 
 package Stem::Event::Timer ;
+<<<<<<< HEAD:lib/Stem/Event.pm
 
+=======
+>>>>>>> master:lib/Stem/Event.pm
 our @ISA = qw( Stem::Event ) ;
 
 =head2 Stem::Event::Timer::new
@@ -649,7 +669,10 @@ sub timer_triggered {
 # these override Stem::Event's methods and then call those via SUPER::
 
 package Stem::Event::IO ;
+<<<<<<< HEAD:lib/Stem/Event.pm
 
+=======
+>>>>>>> master:lib/Stem/Event.pm
 our @ISA = qw( Stem::Event ) ;
 
 sub init_io_timeout {
@@ -723,8 +746,13 @@ sub timed_out {
 #######################################################
 
 package Stem::Event::Read ;
-
 our @ISA = qw( Stem::Event::IO ) ;
+print "B @ISA\n" ;
+
+<<<<<<< HEAD:lib/Stem/Event.pm
+our @ISA = qw( Stem::Event::IO ) ;
+=======
+>>>>>>> master:lib/Stem/Event.pm
 
 =head2 Stem::Event::Read::new
 
@@ -802,9 +830,11 @@ HELP
 sub new {
 
 	my( $class ) = shift ;
+print "@ISA\n" ;
 
 	my $self = Stem::Class::parse_args( $attr_spec_read, @_ ) ;
 	return $self unless ref $self ;
+
 
 # 	return <<ERR unless defined fileno $self->{fh} ;
 # Stem::Event::Read: $self->{fh} is not an open handle
@@ -822,7 +852,10 @@ sub new {
 ############################################################################
 
 package Stem::Event::Write ;
+<<<<<<< HEAD:lib/Stem/Event.pm
 
+=======
+>>>>>>> master:lib/Stem/Event.pm
 our @ISA = qw( Stem::Event::IO ) ;
 
 =head2 Stem::Event::Write::new

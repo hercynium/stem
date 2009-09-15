@@ -32,14 +32,7 @@ sub _build {
 
 	$SIG{ $signal } = $cached_handlers{$signal} ||=
 		sub {
-<<<<<<< HEAD:lib/Stem/Event/Signal.pm
-	Stem::Event::Queue::queue_has_event() ;
-			
-#print "HIT $signal\n";
-=======
-print "HIT $signal\n";
-			Stem::Event::Queue::mark_not_empty() ;
->>>>>>> master:lib/Stem/Event/Signal.pm
+			Stem::Event::Queue::queue_has_event() ;
 			push @signal_queue, $signal
 		} ;
 

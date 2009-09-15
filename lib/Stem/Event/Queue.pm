@@ -49,12 +49,7 @@ use warnings ;
 use Socket;
 use IO::Handle ;
 
-<<<<<<< HEAD:lib/Stem/Event/Queue.pm
 my( $self, $queue_read, $queue_write, $queue_read_event, $queue_has_event ) ;
-=======
-use base 'Exporter' ;
-our @EXPORT = qw( mark_not_empty ) ;
->>>>>>> master:lib/Stem/Event/Queue.pm
 
 sub _init_event_queue {
 

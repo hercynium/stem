@@ -7,7 +7,7 @@ our $s ;
 print "HELLO DEMO\n" ;
 
 use File::Basename qw( basename );
-$ENV{PATH} .= ':' . basename( $0 ) . ':.';
+$ENV{PATH} .= ':' . basename( $0 ) . ':./bin:.';
 for my $prog qw( run_stem xterm ) {
     die "Can't find $prog in PATH\n" if
         system( "which $prog >/dev/null 2>&1" ) != 0;

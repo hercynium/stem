@@ -10,7 +10,7 @@ my @children ;
 print "INETD: $ENV{PATH}\n" ;
 
 use File::Basename qw( basename );
-$ENV{PATH} .= ':' . basename( $0 ) . ':.';
+$ENV{PATH} .= ':' . basename( $0 ) . ':.:../bin:./bin';
 for my $prog qw( run_stem xterm telnet ) {
     die "Can't find $prog in PATH\n" if
         system( "which $prog >/dev/null 2>&1" ) != 0;

@@ -1,16 +1,16 @@
 #!/usr/local/bin/perl -s
 
+use lib qw(../blib/lib blib/lib);
+use Stem::ConfigData;
+$ENV{PATH} .= ':blib/script:../blib/script:demo:.';
+my $xterm = Stem::ConfigData->config('xterm_path');
+my $telnet = Stem::ConfigData->config('telnet_path');
+$conf_path='conf:../conf';
+
 $line_cnt = 10 ;
 $offset = 175 ;
 $base_off = 0 ;
 $xskip = ( $^O eq 'solaris' ) ? 600 : 500 ;
-
-use File::Basename qw( basename );
-$ENV{PATH} .= ':' . basename( $0 ) . ':.';
-for my $prog qw( run_stem xterm telnet ) {
-    die "Can't find $prog in PATH\n" if
-        system( "which $prog >/dev/null 2>&1" ) != 0;
-}
 
 my @children ;
 
@@ -21,7 +21,7 @@ $SIG{ 'INT' } = \&cleanup ;
 if ( $s ) {
 
 	$ssfe = 'ssfe' ;
-	$prompt = '-prompt Stem:' ;
+	$prompt = '-prompt "Stem: "' ;
 	$echo = 'console_echo=1'
 }
 
@@ -34,20 +34,16 @@ foreach my $log ( qw( foo bar bar_status ) ) {
 
 
 foreach $cmd ( split /\n/, <<EOT ) {
-xterm -T Archive -n Archive -geometry 80x35+0+0 -e $ssfe $prompt run_stem $echo archive
-xterm -T Monitor -n Monitor -geometry 80x35+$xskip+0 -e $ssfe $prompt run_stem $echo monitor
+xterm -T Archive -n Archive -geometry 80x35+0+0 -e $ssfe $prompt run_stem conf_path=$conf_path $echo archive
+xterm -T Monitor -n Monitor -geometry 80x35+$xskip+0 -e $ssfe $prompt run_stem conf_path=$conf_path $echo monitor
 xterm -T Tail -n Tail -geometry 80x20+275+420
 EOT
 
 	print "$cmd\n" ;
 
-	@cmd = split ' ', $cmd ;
-
-	s/:/: / for @cmd ;
-
 	chdir $tail_dir unless $cmd =~ /run_stem/ ;
 
-	fork_exec( @cmd ) ;
+	fork_exec( $cmd ) ;
 
 	sleep 2 ;
 }
@@ -70,7 +66,7 @@ sub cleanup {
 
 sub fork_exec {
 
-	my( @exec ) = @_ ;
+	my( $exec ) = @_ ;
 
 	if ( $pid = fork() ) {
 
@@ -78,5 +74,5 @@ sub fork_exec {
 		return ;
 	}
 
-	exec @exec ;
+	exec $exec ;
 }

@@ -1,20 +1,17 @@
 #!/usr/local/bin/perl -s
 
+use lib qw(../blib/lib blib/lib);
+use Stem::ConfigData;
+$ENV{PATH} .= ':blib/script:../blib/script:demo:.';
+my $xterm = Stem::ConfigData->config('xterm_path');
+my $telnet = Stem::ConfigData->config('telnet_path');
+$conf_path='conf:../conf';
+
 $line_cnt = 10 ;
 $offset = 175 ;
 $base_off = 0 ;
 $xskip = ( $^O eq 'solaris' ) ? 600 : 500 ;
 
-use File::Basename qw( basename );
-$ENV{PATH} .= ':' . basename( $0 ) . ':.';
-<<<<<<< HEAD:bin/chat2_demo
-=======
-
->>>>>>> origin/master:bin/chat2_demo
-for my $prog qw( run_stem xterm telnet ) {
-    die "Can't find $prog in PATH\n" if
-        system( "which $prog >/dev/null 2>&1" ) != 0;
-}
 
 my @children ;
 
@@ -23,14 +20,14 @@ $SIG{ 'INT' } = \&cleanup ;
 if ( $s ) {
 
 	$ssfe = 'ssfe' ;
-	$prompt = '-prompt Stem:' ;
-	$prompt2 = '-prompt Chat:' ;
+	$prompt = '-prompt "Stem: "' ;
+	$prompt2 = '-prompt "Chat: "' ;
 	$echo = 'console_echo=1'
 }
 
 foreach $cmd ( split /\n/, <<EOT ) {
-xterm -T Chat1 -n Chat1 -geometry 80x25+XSKIP+0   -e $ssfe $prompt run_stem $echo  chat_server
-xterm -T Chat2 -n Chat2 -geometry 80x25+XSKIP+250 -e $ssfe $prompt run_stem $echo  chat_client
+xterm -T Chat1 -n Chat1 -geometry 80x25+XSKIP+0   -e $ssfe $prompt run_stem conf_path=$conf_path $echo chat_server
+xterm -T Chat2 -n Chat2 -geometry 80x25+XSKIP+250 -e $ssfe $prompt run_stem conf_path=$conf_path $echo chat_client
 xterm -T A -n A -geometry 80xLINE+0+OFF -e $ssfe $prompt2 telnet localhost 6666
 xterm -T B -n B -geometry 80xLINE+0+OFF -e $ssfe $prompt2 telnet localhost 6667
 xterm -T C -n C -geometry 80xLINE+0+OFF -e $ssfe $prompt2 telnet localhost 6668
@@ -44,11 +41,7 @@ EOT
 
 print "$cmd\n" ;
 
-	@cmd = split ' ', $cmd ;
-
-	s/:/: / for @cmd ;
-
-	fork_exec( @cmd ) ;
+	fork_exec( $cmd ) ;
 	sleep 2 unless $cmd =~ /localhost/ ;
 }
 
@@ -70,7 +63,7 @@ sub cleanup {
 
 sub fork_exec {
 
-	my( @exec ) = @_ ;
+	my( $exec ) = @_ ;
 
 	if ( $pid = fork() ) {
 
@@ -78,5 +71,5 @@ sub fork_exec {
 		return ;
 	}
 
-	exec @exec ;
+	exec $exec ;
 }

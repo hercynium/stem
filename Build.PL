@@ -37,33 +37,13 @@ $build->is_unixish() || die "Stem currently only installs properly on *nix-like 
 
 print <<'EOT';
 
-Building Stem
-
-This script will ask you various questions in order to properly
-configure, build and install Stem on your system.  Whenever a question
-is asked, the default answer will be shown inside [brackets].
-Pressing enter will accept the default answer. If a choice needs to be
-made from a list of values, that list will be inside (parentheses).
-
-If you have already configured Stem in a previous build, you can put
-use_defaults=1 on the Build command line and you won't be prompted for
-any answers and the previous settings will be used.
-
-If you want to force a new build, run Build clean.
-
-----------------------------------------------------------------------------
-
-EOT
-
-print <<'EOT';
-
 Stem comes with a utility called 'run_stem' which takes care of things
-like initalizing Stem with a configuration file and controlling it's 
-operation via various parameters you can pass in as environment 
-variables or command line arguments. 
+like initalizing Stem with a configuration file and controlling it's
+operation via various parameters you can pass in as environment
+variables or command line arguments.
 
 Stem configuration files are used to create and initialize Stem Cells
-(objects). run_stem can search a path list for config files, so you 
+(objects). run_stem can search a path list for config files, so you
 can set that list of directories here.
 
 Note that you can easily override this path with either a shell environment
@@ -73,95 +53,51 @@ run_stem for how so do this.
 The last directory in the list is where the standard and demo Stem
 configuration files will be installed.
 
-Please enter a list of directory paths separated by ':'.
-
 EOT
 
 my $conf_path = $build->prompt(
-	"What directories do you want Stem to search for configuration files?\n",
+	"Please enter a list of directory paths separated by ':'\n",
 	'.:~/.stem/conf:/usr/local/stem/conf'
 );
 $build->config_data(conf_path => $conf_path);
 
 
 
-
-
-
-=begin comment
-
 print "\n\nChecking to see if you have a good C compiler...\n\n" ;
 if ( $build->have_c_compiler() ) {
 	print <<'EOT';
-	
-	
+
+
 ssfe (Split Screen Front End) is a compiled program optionally used by
 the Stem demonstration scripts that provides a full screen interface
 with command line editing and history. It is not required to run Stem
 but it makes the demonstrations easier to work with and they look much
 nicer. To use ssfe add the '-s' option when you run any demonstration
-script. You can also use ssfe for your own programs.  Install ssfe in
-some place in your $PATH ($conf->{'bin_path'} is where Stem executables
-are being installed) so it can be used by the demo scripts. The ssfe
-install script will do this for you or you can do it manually after
-building it.
+script. You can also use ssfe for your own programs. If you build ssfe
+it will be installed in the demo/ directory. You may copy it to a place
+in your $PATH is you wish.
 
 EOT
-	my $install_ssfe = $build->y_n("Do you want to install ssfe?\n", 'y');
-	$build->config_data(install_ssfe => $install_ssfe);
-	if ( $install_ssfe ) {
-
-		# Do horrible, nasty things.
-		# This really should be done with a proper makefile.
-
-	}
+	my $build_ssfe = $build->y_n("Do you want to  build ssfe?\n", 'y');
+	$build->config_data(build_ssfe => $build_ssfe);
 }
-
-=cut
-
-
-
 
 
 print <<'EOT';
 
-Stem comes with a variety of demos to show how to get started and do some 
-basic things.
+Stem comes with a variety of demos to show how to get started and do some
+basic things. If you wish, they can be configured to run locally out of the 
+demo/ directory.
 
 EOT
-my $install_demos = $build->y_n("\nDo you want to install the demos?\n",'n');
-$build->config_data( install_demos => $install_demos ) ;
-$build->config_data( build_demos => $install_demos ) ;
-if ( $install_demos ) {
-
-	my $demo_dir = $build->prompt(
-		"\nWhere do you want to install the demo scripts?\n",
-		'/usr/local/stem/demo'
-	);
-	$build->config_data(demo_dir => $demo_dir);
-	$build->install_path()->{demo} ||= $demo_dir;
-
-
-
-	my $demo_conf_dir = $build->prompt(
-		"\nWhere do you want to install the demo config files?\n",
-		'/usr/local/stem/conf'
-	);
-	$build->config_data(demo_conf_dir => $demo_conf_dir);
-	$build->install_path()->{conf} ||= $demo_conf_dir;
-	$build->add_build_element('conf');
-
-	my $cur_conf_path = $build->config_data('conf_path') ;
-	my $new_conf_path = $cur_conf_path =~ /(^|:)$demo_conf_dir(:|$)/ ?
-		$cur_conf_path : "$cur_conf_path:$demo_conf_dir" ;
-	$build->config_data( conf_path => $new_conf_path ) ;
-
+my $build_demos = $build->y_n("\nDo you want to build the demos?\n",'y');
+$build->config_data(build_demos => $build_demos);
+if ( $build_demos ) {
 
 	# Check for telnet
 	my $telnet_path = $build->find_binary( 'telnet' ) || '' ;
 	while ( ! -x $telnet_path && ! $build->_is_unattended() ) {
 		print <<'EOT';
-
 
 telnet was not found on this system. you can't run the demo programs
 without telnet.  Make sure you enter a valid path to telnet or some other
@@ -202,7 +138,7 @@ EOT
 			. "(or another compatible terminal emulator)",
             '/usr/bin/xterm'
 		) ;
-	}
+}
 	$build->config_data( xterm_path => $xterm_path ) ;
 
 }

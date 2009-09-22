@@ -13,32 +13,53 @@ use Module::Build;
 use vars qw(@ISA);
 @ISA = qw(Module::Build);
 
+sub ACTION_build {
 
-sub process_script_files {
-	my ( $self ) = @_ ;
-	my $files = $self->find_script_files();
-	return unless keys %$files;
+    my ( $self ) = @_;
 
-	my $script_dir = File::Spec->catdir($self->blib, 'script');
-	my $demo_dir   = File::Spec->catdir($self->blib, 'demo');
-	File::Path::mkpath( $script_dir );
-	File::Path::mkpath( $demo_dir );
-    $self->add_to_cleanup($demo_dir);
+    if ( $self->config_data( 'build_demos' ) ) {
+	$self->build_demo_scripts();
+    }
 
-	foreach my $file (keys %$files) {
-		my $dest_dir = $file =~ /_demo$/ ? $demo_dir : $script_dir ;
-		my $result = $self->copy_if_modified($file, $dest_dir, 'flatten') or next;
-		$self->fix_shebang_line($result) if $self->is_unixish();
-		$self->make_executable($result);
-        my $demo_run_dir = File::Spec->catdir($self->base_dir(), 'demo');
-		if ( $result =~ /(?:run_stem$)|(?:_demo$)/ ) {
-			my $result2 = $self->copy_if_modified($result, $demo_run_dir, 'flatten') or next;
-			$self->add_to_cleanup($result2);
-		}
-	}
-	return 1;
+    if ( $self->config_data( 'build_ssfe' ) ) {
+	$self->build_ssfe();
+    }
+
+    $self->SUPER::ACTION_build();
 }
 
+
+# yes, hard coded, will fix some other time
+sub build_ssfe {
+    my ( $self ) = @_;
+    print "Compiling ssfe\n";
+    system( "cd extras; tar xzf sirc-2.211.tar.gz; cp sirc-2.211/ssfe.c ../demo" );
+    system( "cc -o demo/ssfe demo/ssfe.c -ltermcap 2>/dev/null" );
+    $self->add_to_cleanup(qw(demo/ssfe demo/ssfe.c ));
+}
+
+
+
+sub build_demo_scripts {
+    my ( $self ) = @_;
+    
+    my $demo_dir = 'demo';
+
+    my @files = <bin/demo/*>;
+
+    for my $file (@files) {
+	my $result = $self->copy_if_modified(
+		    $file, $demo_dir, 'flatten');
+	
+	$self->fix_shebang_line($result) if $self->is_unixish();
+	$self->make_executable($result);
+	$self->add_to_cleanup($result);
+    }
+
+}
+
+###########################################################
+# Find stem config files under the build dir and notify M::B about them.
 sub process_conf_files {
 	my ( $self ) = @_ ;
 	my $files = $self->_find_file_by_type('stem','conf');
@@ -48,19 +69,29 @@ sub process_conf_files {
 	File::Path::mkpath( $conf_dir );
 
 	foreach my $file (keys %$files) {
-		my $result = $self->copy_if_modified($file, $conf_dir, 'flatten') or next;
-		$self->fix_shebang_line($result) if $self->is_unixish();
+		my $result = $self->copy_if_modified(
+		    $file, $conf_dir, 'flatten');
+		next unless $result;
 	}
 	return 1;
 }
 
+
+###########################################################
+# A horrible hack to attempt to find the location of a binary program...
+# It would be nice if this functionality was already part of M::B
+# or there was a CPAN module for it that didn't suck.
 sub find_binary {
 	my ( $self, $prog ) = @_ ;
-	if ( $self->do_system( "which $prog >/dev/null" ) ) {
-		return `which $prog` ;
+	# make sure the command will succeed before extracting the path.
+        if ( $self->do_system( "which $prog >/dev/null" ) ) {
+		my $path = `which $prog` ;
+                chomp $path;
+                return $path;
 	}
 	return;
 }
+
 
 
 ###########################################################

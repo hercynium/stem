@@ -100,7 +100,7 @@ sub new {
 	my $self = Stem::Class::parse_args( $attr_spec, @_ ) ;
 	return $self unless ref $self ;
 
-print "TAIL INT $self->{'interval'}\n" ;
+#print "TAIL INT $self->{'interval'}\n" ;
 
 	if ( my $interval = $self->{'interval'} ) {
 
@@ -113,7 +113,7 @@ print "TAIL INT $self->{'interval'}\n" ;
 				'hard'		=> 1,
 		) ;
 
-print "TIMER $self->{'timer'}\n" ;
+#print "TIMER $self->{'timer'}\n" ;
 
 	}
 
@@ -128,7 +128,7 @@ sub tail_cmd {
 
 	my( $self ) = @_ ;
 
-print "TAILING\n" ;
+#print "TAILING\n" ;
 
 	local( *LOG ) ;
 

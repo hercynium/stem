@@ -48,8 +48,11 @@ sub build_demo_scripts {
     my @files = <bin/demo/*>;
 
     for my $file (@files) {
+
 	my $result = $self->copy_if_modified(
 		    $file, $demo_dir, 'flatten');
+
+	next unless $result ;
 	
 	$self->fix_shebang_line($result) if $self->is_unixish();
 	$self->make_executable($result);

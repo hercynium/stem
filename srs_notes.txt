@@ -1,6 +1,0 @@
-Odd sort of behavior... when dumping \%:: with Data::Dumper in Stem/Conf.pm
-(insert a print @ line 234)
-
-the program just "freezes"...
-
-

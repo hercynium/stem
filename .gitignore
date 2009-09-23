@@ -38,3 +38,6 @@ slides
 stem2pod
 test
 
+# other random stuff
+*.BACKUP
+*.orig

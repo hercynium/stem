@@ -20,10 +20,11 @@
 # Temp, old and emacs backup files.
 ~$
 \.old$
-^#.*#$
+\B#.*#$
 ^\.#
 \.*.swp$
 
 # other stuff we dont want in the dist tarball
 ^notes/
-
+^*.orig
+^*.BACKUP

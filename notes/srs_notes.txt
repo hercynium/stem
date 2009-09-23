@@ -4,3 +4,15 @@ Odd sort of behavior... when dumping \%:: with Data::Dumper in Stem/Conf.pm
 the program just "freezes"...
 
 
+
+# A simple script to (naievely) figure out the non-core dependencies in Stem:
+# this for example, looks for anything not core in perl 5.008001
+
+egrep -hR '^use ' ./lib/ | 
+  sed 's/[^a-zA-Z0-9_: ]//' | 
+  egrep -v 'use (Stem|[0-9]+)' | 
+  sort -u | 
+  cut -d ' ' -f 2 | 
+  perl -MModule::CoreList -M5.010 \
+    -ne 'chomp; say unless exists $Module::CoreList::version{"5.008001"}{$_}'
+

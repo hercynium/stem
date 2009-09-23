@@ -35,7 +35,7 @@ sub build_ssfe {
     print "Compiling ssfe\n";
     system( "cd extras; tar xzf sirc-2.211.tar.gz; cp sirc-2.211/ssfe.c ../demo" );
     system( "cc -o demo/ssfe demo/ssfe.c -ltermcap 2>/dev/null" );
-    $self->add_to_cleanup(qw(demo/ssfe demo/ssfe.c ));
+    $self->add_to_cleanup(qw(demo/ssfe demo/ssfe.c extras/sirc-2.211 ));
 }
 
 

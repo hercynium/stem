@@ -28,3 +28,4 @@
 ^notes/
 ^*.orig
 ^*.BACKUP
+*.new

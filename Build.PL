@@ -3,15 +3,26 @@
 use strict;
 use warnings;
 
+<<<<<<< HEAD:Build.PL
 use Config;
 use File::Spec;
 use Data::Dumper;
 
 use BuildStem;
+=======
+use Config ;
+use File::Spec ;
+use Data::Dumper ;
 
-my $version_from = File::Spec->catfile( File::Spec->curdir, 'lib', 'Stem.pm' );
+use BuildStem ;
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
+
+my $version_from = File::Spec->catfile( 
+    File::Spec->curdir, 'lib', 'Stem.pm' 
+);
 
 my $build = BuildStem->new(
+<<<<<<< HEAD:Build.PL
     module_name       => 'Stem',
     dist_version_from => $version_from,
     requires          => { YAML => 0, },
@@ -25,15 +36,45 @@ my $build = BuildStem->new(
         Event => 0,
     },
     create_makefile_pl => 'passthrough'
+=======
+    module_name		 => 'Stem',
+    dist_version_from	 => $version_from,
+    requires		 => {
+      YAML        => 0,
+    },
+    dist_abstract	 => 
+        'An asynchronous message passing framework for Perl',
+    license		 => 'gpl',
+    dynamic_config	 => 1,
+    recursive_test_files => 1,
+    needs_compiler       => 0,
+    recommends           => {
+	DBI    => 0,
+        Event  => 0,
+    },
+    create_makefile_pl	 => 'passthrough'
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
 );
 
 $build->is_unixish()
   or die "Stem currently only installs properly on *nix-like platforms.\n";
 
+<<<<<<< HEAD:Build.PL
+### ask about the config path and where to install bundled config files
+=======
+
+$build->is_unixish() or 
+  die "Stem currently only installs properly on *nix-like platforms.\n";
+
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
+
 ### ask about the config path and where to install bundled config files
 
+<<<<<<< HEAD:Build.PL
+=======
 print <<'EOT';
 
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
 Stem configuration files are used to create and initialize Stem Cells.
 An included program called 'run_stem' will search a default path for 
 a specified config file and use it to get everything going. You can see
@@ -45,12 +86,22 @@ how to do this.
 
 EOT
 
+<<<<<<< HEAD:Build.PL
 $build->config_data(
     conf_path => scalar $build->prompt(
         "Please enter a list of directory paths separated by ':'\n",
         '.:~/.stem/conf:/usr/local/stem/conf'
     )
 );
+=======
+$build->config_data( 
+    conf_path => scalar $build->prompt(
+        "Please enter a list of directory paths separated by ':'\n",
+	'.:~/.stem/conf:/usr/local/stem/conf'
+    )
+);
+
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
 
 print <<'EOT';
 
@@ -60,22 +111,39 @@ appended. If this directory does not exist, it will be created.
 
 EOT
 
+<<<<<<< HEAD:Build.PL
 $build->config_data(
     conf_dir => scalar $build->prompt(
         "Please enter a directory path:\n",
         '/usr/local/stem/conf'
+=======
+$build->config_data( 
+    conf_dir => scalar $build->prompt(
+        "Please enter a directory path:\n",
+	'/usr/local/stem/conf'
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
     )
 );
 
 ### add the conf_dir to the conf_path, if necessary
 {
+<<<<<<< HEAD:Build.PL
     my $conf_path = $build->config_data('conf_path');
     my $conf_dir  = $build->config_data('conf_dir');
+=======
+    my $conf_path = $build->config_data( 'conf_path' );
+    my $conf_dir  = $build->config_data( 'conf_dir' );
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
     if ( $conf_path =~ /(^|:)\Q$conf_dir\E(:|$)/ ) {
         $build->config_data( conf_path => "$conf_path:$conf_dir" );
     }
 }
 
+<<<<<<< HEAD:Build.PL
+=======
+
+
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
 ### ask about building the demo scripts
 print <<'EOT';
 
@@ -86,6 +154,7 @@ to the system, even after you install the rest of Stem.
 
 EOT
 
+<<<<<<< HEAD:Build.PL
 $build->config_data( build_demos =>
       scalar $build->y_n( "Do you want to build the demos?\n", 'y' ) );
 
@@ -96,11 +165,29 @@ if ( $build->config_data('build_demos') ) {
     while ( !-x $telnet_path && !$build->_is_unattended() ) {
         print <<'EOT';
 
+=======
+$build->config_data(
+    build_demos => scalar $build->y_n(
+        "Do you want to build the demos?\n", 'y'
+    )
+);
+
+
+if ( $build->config_data( 'build_demos' ) ) {
+
+
+	### Try to find telnet
+	my $telnet_path = $build->find_binary( 'telnet' ) || '' ;
+	while ( ! -x $telnet_path && ! $build->_is_unattended() ) {
+		print <<'EOT';
+
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
 telnet was not found on this system. the demo programs won't run properly
 without telnet. Please enter a valid path to telnet, or a single <space> 
 to give up trying.
 
 EOT
+<<<<<<< HEAD:Build.PL
         $telnet_path = $build->prompt(
             "Enter the path to telnet "
               . "(or another compatible telnet client)",
@@ -109,12 +196,25 @@ EOT
         last if $telnet_path =~ s/^\w+$//;
     }
     $build->config_data( telnet_path => $telnet_path || undef );
+=======
+		$telnet_path = $build->prompt(
+			  "Enter the path to telnet "
+			. "(or another compatible telnet client)",
+					      '/usr/bin/telnet'
+		) ;
+		last if $telnet_path =~ s/^\w+$//;
+	}
+	$build->config_data( telnet_path => $telnet_path || undef ) ;
+
+
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
 
     ### Try to find xterm
     my $xterm_path = $build->find_binary('xterm') || '';
     while ( !-x $xterm_path && !$build->_is_unattended() ) {
         print <<'EOT';
 
+<<<<<<< HEAD:Build.PL
 xterm was not found on this system. the demo programs won't run properly
 without xterm.  Please enter a valid path to xterm or a single <space> to
 give up trying.
@@ -128,6 +228,26 @@ EOT
         last if $xterm_path =~ s/^\w+$//;
     }
     $build->config_data( xterm_path => $xterm_path || undef );
+=======
+	# Try to find xterm
+	my $xterm_path = $build->find_binary( 'xterm' ) || '' ;
+	while ( ! -x $xterm_path && ! $build->_is_unattended() ) {
+	    print <<'EOT';
+
+xterm was not found on this system. the demo programs won't run properly
+without xterm.  Please enter a valid path to xterm or a single <space> to
+give up trying.
+
+EOT
+	    $xterm_path = $build->prompt(
+	        "Enter the path to xterm "
+	      . "(or another compatible terminal emulator)",
+	      '/usr/bin/xterm'
+	    ) ;
+	    last if $xterm_path =~ s/^\w+$//;
+	}
+	$build->config_data( xterm_path => $xterm_path || undef ) ;
+
 
     ### Only build ssfe if we have a working C compiler
     if ( $build->have_c_compiler() ) {
@@ -141,6 +261,40 @@ nicer. To use ssfe add the '-s' option when you run any demonstration
 script. You can also use ssfe for your own programs. If you build ssfe
 it will be installed in the demo/ directory. You may copy it to a place
 in your $PATH is you wish.
+
+EOT
+	$build->config_data(
+	    build_ssfe => scalar $build->y_n(
+                "Do you want to build ssfe for the demos?\n", 'y'
+            )
+        );
+    }
+}
+
+
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
+
+    ### Only build ssfe if we have a working C compiler
+    if ( $build->have_c_compiler() ) {
+        print <<'EOT';
+
+<<<<<<< HEAD:Build.PL
+ssfe (Split Screen Front End) is a compiled program optionally used by
+the Stem demonstration scripts that provides a full screen interface
+with command line editing and history. It is not required to run Stem
+but it makes the demonstrations easier to work with and they look much
+nicer. To use ssfe add the '-s' option when you run any demonstration
+script. You can also use ssfe for your own programs. If you build ssfe
+it will be installed in the demo/ directory. You may copy it to a place
+in your $PATH is you wish.
+=======
+### NOTE: find out whether or not each of the following 
+### config_data settings are actually being *used* for anything
+
+my $script_dest = $build->install_destination('script') ;
+my $run_stem_path = File::Spec->catfile( $script_dest, 'run_stem' ) ;
+$build->config_data( run_stem_path => $run_stem_path ) ;
+>>>>>>> 09baddbd49de087e08177d20594c9d313b542949:Build.PL
 
 EOT
         $build->config_data( build_ssfe =>

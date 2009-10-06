@@ -8,12 +8,6 @@ bin/cli
 bin/run_stem
 bin/stem2pod
 bin/stem_msg
-bin/demo/hello_demo
-bin/demo/inetd_demo
-bin/demo/quote_serve
-bin/demo/tail_demo
-bin/demo/chat2_demo
-bin/demo/chat_demo
 certs/client-cert.pem
 certs/client-key.enc
 certs/client-key.pem
@@ -62,6 +56,12 @@ demo/DEMO
 demo/DEMO_CHAT
 demo/DEMO_INETD
 demo/DEMO_TAIL
+demo/hello_demo
+demo/inetd_demo
+demo/quote_serve
+demo/tail_demo
+demo/chat2_demo
+demo/chat_demo
 Design/arch_notes
 Design/asyncio_notes
 Design/cell_notes

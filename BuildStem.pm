@@ -29,7 +29,7 @@ sub ACTION_build {
 }
 
 
-# yes, hard coded, will fix some other time
+# yes, hard coded paths are bad, will fix some other time
 sub build_ssfe {
     my ( $self ) = @_;
     print "Compiling ssfe\n";
@@ -40,6 +40,7 @@ sub build_ssfe {
 
 
 
+# handle demo scripts differently from other binaries.
 sub build_demo_scripts {
     my ( $self ) = @_;
     

@@ -64,7 +64,7 @@ my %loop_to_class = (
 
 my $loop_class = _get_loop_class() ;
 
-INIT{ init_loop() ; }
+init_loop() ;
 
 
 sub init_loop {
